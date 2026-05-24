@@ -14,10 +14,35 @@ import sys
 
 from detector import detect, scan_report
 from anonymizer import anonymize, anonymize_csv_column
+from json_handler import anonymize_json
 
 
 def cmd_scan(args):
-    text = _get_text(args)
+    if args.file and args.file.endswith(".json"):
+        try:
+            with open(args.file, "r") as f:
+                data = json.load(f)
+            flat_strings = []
+            def extract_strings(item):
+                if isinstance(item, dict):
+                    for k, v in item.items():
+                        if isinstance(v, (str, int, float)):
+                            flat_strings.append(f"{k}: {v}")
+                        else:
+                            extract_strings(v)
+                elif isinstance(item, list):
+                    for i in item:
+                        extract_strings(i)
+                elif isinstance(item, str):
+                    flat_strings.append(item)
+            extract_strings(data)
+            text = "\n".join(flat_strings)
+        except Exception as e:
+            print(f"Error reading JSON: {e}")
+            sys.exit(1)
+    else:
+        text = _get_text(args)
+
     matches = detect(text, types=args.types or None)
     if not matches:
         print("✅ No PII detected.")
@@ -28,9 +53,19 @@ def cmd_scan(args):
 
 
 def cmd_anon(args):
-    text = _get_text(args)
-    result = anonymize(text, strategy=args.strategy, types=args.types or None)
-    print(result)
+    if args.file and args.file.endswith(".json"):
+        try:
+            with open(args.file, "r") as f:
+                data = json.load(f)
+            result = anonymize_json(data, strategy=args.strategy, types=args.types or None)
+            print(json.dumps(result, indent=2))
+        except Exception as e:
+            print(f"Error reading JSON: {e}")
+            sys.exit(1)
+    else:
+        text = _get_text(args)
+        result = anonymize(text, strategy=args.strategy, types=args.types or None)
+        print(result)
 
 
 def cmd_report(args):

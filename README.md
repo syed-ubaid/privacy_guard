@@ -79,6 +79,12 @@ python cli.py scan --file sample_data.csv --column notes
 python cli.py anon --file sample_data.csv --column notes --strategy mask
 ```
 
+### Scan/Anonymize a JSON file or API response
+```bash
+python cli.py scan --file response.json
+python cli.py anon --file response.json --strategy redact
+```
+
 ### Filter by PII type
 ```bash
 python cli.py scan "jane@mail.com, 4111111111111111" --types email credit_card
@@ -102,6 +108,7 @@ python cli.py scan "jane@mail.com, 4111111111111111" --types email credit_card
 privacy_guard/
 ├── detector.py      # Regex-based PII pattern matching engine
 ├── anonymizer.py    # Masking / redaction / hashing engine
+├── json_handler.py  # Recursive JSON & API response scanning engine
 ├── cli.py           # argparse CLI interface
 ├── sample_data.csv  # Demo dataset with embedded PII
 └── requirements.txt
